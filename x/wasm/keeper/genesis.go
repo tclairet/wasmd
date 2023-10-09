@@ -18,7 +18,7 @@ type ValidatorSetSource interface {
 // InitGenesis sets supply information for genesis.
 //
 // CONTRACT: all types of accounts must have been already initialized/created
-func InitGenesis(ctx sdk.Context, keeper *Keeper, data types.GenesisState) ([]abci.ValidatorUpdate, error) {
+func InitGenesis(ctx sdk.Context, keeper WasmKeeper, data types.GenesisState) ([]abci.ValidatorUpdate, error) {
 	contractKeeper := NewGovPermissionKeeper(keeper)
 	err := keeper.SetParams(ctx, data.Params)
 	if err != nil {
@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, keeper *Keeper, data types.GenesisState) ([]ab
 
 	var maxCodeID uint64
 	for i, code := range data.Codes {
-		err := keeper.importCode(ctx, code.CodeID, code.CodeInfo, code.CodeBytes)
+		err := keeper.ImportCode(ctx, code.CodeID, code.CodeInfo, code.CodeBytes)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "code %d with id: %d", i, code.CodeID)
 		}
@@ -46,14 +46,14 @@ func InitGenesis(ctx sdk.Context, keeper *Keeper, data types.GenesisState) ([]ab
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "address in contract number %d", i)
 		}
-		err = keeper.importContract(ctx, contractAddr, &contract.ContractInfo, contract.ContractState, contract.ContractCodeHistory) //nolint:gosec
+		err = keeper.ImportContract(ctx, contractAddr, &contract.ContractInfo, contract.ContractState, contract.ContractCodeHistory) //nolint:gosec
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "contract number %d", i)
 		}
 	}
 
 	for i, seq := range data.Sequences {
-		err := keeper.importAutoIncrementID(ctx, seq.IDKey, seq.Value)
+		err := keeper.ImportAutoIncrementID(ctx, seq.IDKey, seq.Value)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "sequence number %d", i)
 		}
@@ -75,7 +75,7 @@ func InitGenesis(ctx sdk.Context, keeper *Keeper, data types.GenesisState) ([]ab
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
-func ExportGenesis(ctx sdk.Context, keeper *Keeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, keeper WasmKeeper) *types.GenesisState {
 	var genState types.GenesisState
 
 	genState.Params = keeper.GetParams(ctx)

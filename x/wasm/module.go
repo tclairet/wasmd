@@ -104,7 +104,7 @@ var _ appmodule.AppModule = AppModule{}
 type AppModule struct {
 	AppModuleBasic
 	cdc                codec.Codec
-	keeper             *keeper.Keeper
+	keeper             keeper.WasmKeeper
 	validatorSetSource keeper.ValidatorSetSource
 	accountKeeper      types.AccountKeeper // for simulation
 	bankKeeper         simulation.BankKeeper
@@ -116,7 +116,7 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec,
-	keeper *keeper.Keeper,
+	keeper keeper.WasmKeeper,
 	validatorSetSource keeper.ValidatorSetSource,
 	ak types.AccountKeeper,
 	bk simulation.BankKeeper,
@@ -153,7 +153,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.Querier(am.keeper))
 
-	m := keeper.NewMigrator(*am.keeper, am.legacySubspace)
+	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
 	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 	if err != nil {
 		panic(err)

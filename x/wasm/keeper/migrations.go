@@ -11,28 +11,28 @@ import (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper         Keeper
+	keeper         WasmKeeper
 	legacySubspace exported.Subspace
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, legacySubspace exported.Subspace) Migrator {
+func NewMigrator(keeper WasmKeeper, legacySubspace exported.Subspace) Migrator {
 	return Migrator{keeper: keeper, legacySubspace: legacySubspace}
 }
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v1.NewMigrator(m.keeper, m.keeper.addToContractCreatorSecondaryIndex).Migrate1to2(ctx)
+	return v1.NewMigrator(m.keeper, m.keeper.AddToContractCreatorSecondaryIndex).Migrate1to2(ctx)
 }
 
 // Migrate2to3 migrates the x/wasm module state from the consensus
 // version 2 to version 3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v2.MigrateStore(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
+	return v2.MigrateStore(ctx, m.keeper.StoreKey(), m.legacySubspace, m.keeper.CDC())
 }
 
 // Migrate3to4 migrates the x/wasm module state from the consensus
 // version 3 to version 4.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	return v3.NewMigrator(m.keeper, m.keeper.storeCodeInfo).Migrate3to4(ctx, m.keeper.storeKey, m.keeper.cdc)
+	return v3.NewMigrator(m.keeper, m.keeper.StoreCodeInfo).Migrate3to4(ctx, m.keeper.StoreKey(), m.keeper.CDC())
 }
